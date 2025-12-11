@@ -3,5 +3,9 @@ __pycache__/
 *.pyc
 .env
 data/
+vectorstore/
+faiss_index/
 *.npy
+*.pkl
 courses.db
+

@@ -1,6 +1,28 @@
+# # --- Core ---
+# streamlit==1.39.0
+# numpy==2.0.2
+
+# pandas==2.2.2
+# scikit-learn==1.5.2
+# python-dotenv==1.0.1
+
+# # --- Local RAG (FAISS + LangChain + MiniLM) ---
+# sentence-transformers==2.7.0
+# faiss-cpu==1.7.4
+# langchain==0.3.3
+# langchain-community==0.3.2
+# tqdm>=4.65.0
+
+# --- Core ---
 streamlit==1.39.0
 numpy==1.26.4
 pandas==2.2.2
 scikit-learn==1.5.2
-openai==1.14.2
 python-dotenv==1.0.1
+
+# --- Local RAG (FAISS + LangChain + MiniLM) ---
+sentence-transformers==2.7.0
+faiss-cpu==1.7.4
+langchain==0.3.3
+langchain-community==0.3.2
+tqdm>=4.65.0
