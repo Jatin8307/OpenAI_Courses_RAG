@@ -1,33 +1,39 @@
-# search_courses_stage1.py
 import sqlite3
-from typing import List, Tuple
+from config_api import DB_PATH
 
-DB_PATH = "courses.db"
-
-def get_sql_candidates(keywords: List[str], limit: int = 20) -> List[Tuple[int, str, str]]:
-    """
-    Simple SQL LIKE search over title and description.
-    Returns list of tuples: (id, title, description)
-    """
-    if not keywords:
-        return []
-
+def get_sql_candidates(keywords):
     conn = sqlite3.connect(DB_PATH)
     cur = conn.cursor()
 
-    conds = " OR ".join(["(title LIKE ? OR description LIKE ?)" for _ in keywords])
+    # Basic LIKE search
+    conditions = []
     params = []
-    for k in keywords:
-        kw = f"%{k}%"
-        params.extend([kw, kw])
+    for kw in keywords:
+        conditions.append("(title LIKE ? OR description LIKE ?)")
+        params.append(f"%{kw}%")
+        params.append(f"%{kw}%")
+
+    if not conditions:
+        return []
 
     query = f"""
         SELECT id, title, description
         FROM courses
-        WHERE {conds}
-        LIMIT ?
+        WHERE {" OR ".join(conditions)}
+        LIMIT 20
     """
-    cur.execute(query, params + [limit])
+
+    cur.execute(query, params)
     rows = cur.fetchall()
     conn.close()
-    return rows
+
+    # ---- FIX: Convert tuple → dict ----
+    results = []
+    for r in rows:
+        results.append({
+            "id": r[0],
+            "title": r[1],
+            "description": r[2]
+        })
+
+    return results

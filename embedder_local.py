@@ -1,17 +1,18 @@
-# embedder_local.py
-from sentence_transformers import SentenceTransformer
-import numpy as np
+from langchain_huggingface import HuggingFaceEmbeddings
 from config_api import LOCAL_EMBEDDING_MODEL
 
-_model = None
+_embedding_model = None
 
 def get_model():
-    global _model
-    if _model is None:
-        _model = SentenceTransformer(LOCAL_EMBEDDING_MODEL)
-    return _model
+    global _embedding_model
+    if _embedding_model is None:
+        _embedding_model = HuggingFaceEmbeddings(
+            model_name="sentence-transformers/all-MiniLM-L6-v2"
+        )
+    return _embedding_model
+
 
 def embed_text(text: str):
     model = get_model()
-    vec = model.encode([text], convert_to_numpy=True, show_progress_bar=False)[0].astype("float32")
+    vec = model.embed_query(text)   # returns numpy array (float32)
     return vec

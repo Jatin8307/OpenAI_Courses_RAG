@@ -1,69 +1,83 @@
-# reranker_local.py
-from typing import List, Dict, Any
+import numpy as np
+from openai import OpenAI
 from config_api import get_openai_api_key
-import re
-OPENAI_API_KEY = get_openai_api_key()
-# optional: use OpenAI if key present (you said local; this is optional)
-try:
-    if OPENAI_API_KEY:
-        from openai import OpenAI
-        _client = OpenAI(api_key=OPENAI_API_KEY)
-    else:
-        _client = None
-except Exception:
-    _client = None
 
-def heuristic_rerank(query: str, candidates: List[Dict[str, Any]], max_results: int = 10):
-    seen_titles = set()
-    final = []
+client = OpenAI(api_key=get_openai_api_key())
+
+# -----------------------------
+# 1) Local Heuristic Reranker
+# -----------------------------
+def heuristic_rerank(query, candidates):
+    """
+    Simple keyword-based + diversity reranker.
+    """
+    query_words = set(query.lower().split())
+
+    scored = []
     for c in candidates:
-        title_norm = re.sub(r"\W+", " ", (c.get("title") or "").lower()).strip()
-        if title_norm in seen_titles:
-            continue
-        seen_titles.add(title_norm)
-        final.append(c)
-        if len(final) >= max_results:
-            break
-    return final[:max_results]
+        title = c["title"].lower()
+        desc = c["description"].lower()
 
-def openai_rerank(query: str, candidates: List[Dict[str, Any]], max_results: int = 10):
-    if _client is None:
-        return heuristic_rerank(query, candidates, max_results)
-    # Build prompt
-    items = []
-    for c in candidates[:100]:
-        items.append(f"{c['id']}. {c.get('title','')[:120]} -- {(c.get('description') or '')[:200].replace(chr(10),' ')}")
+        # keyword match score
+        kw_score = sum(1 for w in query_words if w in title or w in desc)
+
+        # length penalty (prefer detailed descriptions)
+        len_score = min(len(desc) / 150, 1.0)
+
+        total = kw_score + len_score
+        scored.append((total, c))
+
+    # sort descending
+    scored.sort(key=lambda x: x[0], reverse=True)
+
+    # return top 10 unique
+    return [c for _, c in scored][:10]
+
+
+# -----------------------------
+# 2) OpenAI LLM Re-Ranker
+# -----------------------------
+def rerank_llm(query, candidates, max_items=10):
+    """
+    Ask LLM to re-rank only the retrieved set.
+    """
+    items = [
+        f"{c['id']}. {c['title']} — {c['description'][:60]}..."
+        for c in candidates
+    ]
+    course_block = "\n".join(items)
+
     prompt = f"""
-You are an assistant that ranks candidate course items for a user query.
-Query: {query}
+You are a strict course ranking AI.
+User query: "{query}"
 
-Candidates:
-{chr(10).join(items)}
+Below is a list of course IDs with titles and descriptions.
+Filter irrelevant courses.
+Remove duplicates.
+Return ONLY the relevant IDs sorted by best match.
 
-Remove irrelevant items, deduplicate near-duplicates, ensure topic diversity and return JSON:
-{{"ranked_ids": [id1,id2,...]}} (max {max_results} ids)
+Return JSON:
+{{"ranked_ids": [3, 7, 12, ...] }}
+
+Courses:
+{course_block}
 """
-    resp = _client.chat.completions.create(
-        model="gpt-4o-mini",
-        messages=[{"role":"user","content":prompt}],
-        temperature=0,
-        max_tokens=200
-    )
-    raw = resp.choices[0].message.content
-    import json
-    try:
-        ranked = json.loads(raw)["ranked_ids"]
-    except Exception:
-        ranked = [int(x) for x in re.findall(r"\d+", raw)]
-    idmap = {c["id"]: c for c in candidates}
-    out = [idmap[r] for r in ranked if r in idmap]
-    if not out:
-        return heuristic_rerank(query, candidates, max_results)
-    return out[:max_results]
 
-def rerank(query: str, candidates: List[Dict[str, Any]], max_results:int=10):
-    # prefer heuristic (fast & offline)
     try:
-        return heuristic_rerank(query, candidates, max_results)
-    except Exception:
-        return candidates[:max_results]
+        resp = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0
+        )
+
+        import json
+        ranked_ids = json.loads(resp.choices[0].message.content)["ranked_ids"]
+
+        id_to_course = {c["id"]: c for c in candidates}
+        final = [id_to_course[i] for i in ranked_ids if i in id_to_course]
+
+        return final[:max_items]
+
+    except:
+        # fallback to heuristic
+        return heuristic_rerank(query, candidates)

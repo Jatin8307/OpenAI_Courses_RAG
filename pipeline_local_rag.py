@@ -1,4 +1,3 @@
-# pipeline_local_rag.py
 from search_courses_stage1 import get_sql_candidates
 from retrievel_local import hybrid_retrieve
 from reranker_local import rerank
