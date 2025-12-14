@@ -1,11 +1,17 @@
+# Virtual environments
 venv/
-__pycache__/
-*.pyc
 .env
-data/
+__pycache__/
+
+# Local data not needed in repo
 vectorstore/
-faiss_index/
 *.npy
 *.pkl
-courses.db
+
+# Streamlit cache
+.streamlit/
+
+# OS files
+Thumbs.db
+.DS_Store
 

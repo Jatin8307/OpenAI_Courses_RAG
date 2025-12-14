@@ -13,7 +13,7 @@ def get_openai_api_key():
 # DB & data paths (adjust if you placed files into a subfolder)
 DB_PATH = os.getenv("LOCAL_DB_PATH", "courses.db")
 DATA_DIR = os.getenv("LOCAL_DATA_DIR", "data")
-FAISS_DIR = os.getenv("FAISS_DIR", "vectorstore/faiss_index")
+# FAISS_DIR = os.getenv("FAISS_DIR", "vectorstore/faiss_index")
 
 # Local embedding model name (sentence-transformers)
 LOCAL_EMBEDDING_MODEL = os.getenv("LOCAL_EMBEDDING_MODEL", "all-MiniLM-L6-v2")

@@ -1,54 +1,24 @@
-# --- Core ---
+# core
 streamlit==1.39.0
-numpy==1.26.4
-pandas==2.2.2
 python-dotenv==1.0.1
 
-# --- SQL Stage ---
-sqlite-utils==3.36.0
+# data + embeddings
+numpy==1.26.4
+pandas==2.2.2
+sentence-transformers==2.7.0
+scikit-learn==1.5.2
+tqdm==4.67.1
 
-# --- Vector store ---
-faiss-cpu==1.7.4
-
-# --- LangChain ---
+# langchain ecosystem
 langchain==0.3.3
+langchain-core==0.3.63
 langchain-community==0.3.2
-langchain-huggingface==0.1.0
+langchain-text-splitters==0.3.8
 
-# --- Embeddings (NO PyTorch) ---
-transformers==4.35.0
-tokenizers==0.15.0
-tqdm>=4.65.0
+# pinecone native v5
+pinecone==5.0.0
 
-# --- LLM Re-Ranker (you already use it) ---
-openai==1.14.2
-
-
-# # --- Core ---
-# streamlit==1.39.0
-# numpy==2.0.2
-
-# pandas==2.2.2
-# scikit-learn==1.5.2
-# python-dotenv==1.0.1
-
-# # --- Local RAG (FAISS + LangChain + MiniLM) ---
-# sentence-transformers==2.7.0
-# faiss-cpu==1.7.4
-# langchain==0.3.3
-# langchain-community==0.3.2
-# tqdm>=4.65.0
-
-# # --- Core ---
-# streamlit==1.39.0
-# numpy==1.26.4
-# pandas==2.2.2
-# scikit-learn==1.5.2
-# python-dotenv==1.0.1
-
-# # --- Local RAG (FAISS + LangChain + MiniLM) ---
-# sentence-transformers==2.7.0
-# faiss-cpu==1.7.4
-# langchain==0.3.3
-# langchain-community==0.3.2
-# tqdm>=4.65.0
+# LLM + helpers
+# openai==1.40.0
+python-multipart
+openai==2.11.0
